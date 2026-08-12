@@ -1,0 +1,4 @@
+# SQL Server / IDE files
+.vs/
+*.user
+*.suo

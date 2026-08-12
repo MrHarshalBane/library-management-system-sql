@@ -1,0 +1,8 @@
+# GitHub Upload Commands
+
+git init
+git add .
+git commit -m "Add Library Management System SQL database"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/library-management-system-sql.git
+git push -u origin main
