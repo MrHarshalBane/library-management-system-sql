@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library Management Chatbot</title>
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      --panel-bg: rgba(30, 41, 59, 0.7);
+      --panel-border: rgba(255, 255, 255, 0.1);
+      --accent-blue: #38bdf8;
+      --accent-indigo: #6366f1;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --bot-msg-bg: rgba(51, 65, 85, 0.8);
+      --user-msg-bg: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 900px;
+      height: 90vh;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .header-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background-color: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #22c55e;
+    }
+
+    .chat-header h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .db-badge {
+      font-size: 0.75rem;
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent-blue);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 14px 18px;
+      border-radius: 16px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      animation: fadeIn 0.3s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bot-message {
+      align-self: flex-start;
+      background: var(--bot-msg-bg);
+      border: 1px solid var(--panel-border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .user-message {
+      align-self: flex-end;
+      background: var(--user-msg-bg);
+      border-bottom-right-radius: 4px;
+    }
+
+    .query-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 0 24px 16px;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.825rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip:hover {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--text-main);
+      border-color: var(--accent-blue);
+    }
+
+    .chat-input-area {
+      padding: 16px 24px;
+      border-top: 1px solid var(--panel-border);
+      background: rgba(15, 23, 42, 0.4);
+      display: flex;
+      gap: 12px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .chat-input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .send-btn {
+      background: var(--user-msg-bg);
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .send-btn:hover {
+      opacity: 0.9;
+    }
+
+    .db-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.85rem;
+    }
+
+    .db-table th, .db-table td {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 10px;
+      text-align: left;
+    }
+
+    .db-table th {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--accent-blue);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="header-info">
+        <div class="status-dot"></div>
+        <h2>Library Assistant</h2>
+      </div>
+      <span class="db-badge">LIBRARY_DB Active</span>
+    </div>
+
+    <div class="messages-area" id="messagesArea">
+      <div class="message bot-message">
+        Hello! I am your <strong>LIBRARY_DB</strong> Assistant. You can ask me about available books, readers, staff members, reservations, or database analytics.
+      </div>
+    </div>
+
+    <div class="query-chips">
+      <button class="chip" onclick="quickQuery('List all books')">📚 List all books</button>
+      <button class="chip" onclick="quickQuery('Show average price of books')">📊 Average book price</button>
+      <button class="chip" onclick="quickQuery('Who reserved B001?')">🔍 Check B001 reservations</button>
+      <button class="chip" onclick="quickQuery('Show all readers')">👥 Registered Readers</button>
+    </div>
+
+    <div class="chat-input-area">
+      <input type="text" id="userInput" class="chat-input" placeholder="Type a query or ask about the database..." onkeypress="handleKeyPress(event)" />
+      <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // In-memory representation of LIBRARY_DB
+    const DB = {
+      READERS: [
+        { User_ID: 101, First_Name: 'Ram', Last_Name: 'Patil', Email: 'ram@gmail.com', Phone_No: '9876543210', Address: 'Mumbai', DOB: '2005-01-15' },
+        { User_ID: 102, First_Name: 'Shyam', Last_Name: 'Kumar', Email: 'shyam@gmail.com', Phone_No: '9876543211', Address: 'Pune', DOB: '2004-08-21' },
+        { User_ID: 103, First_Name: 'Riya', Last_Name: 'Shah', Email: 'riya@gmail.com', Phone_No: '9876543212', Address: 'Nashik', DOB: '2005-03-10' }
+      ],
+      STAFF: [
+        { Staff_ID: 1, Name: 'Amit' },
+        { Staff_ID: 2, Name: 'Neha' }
+      ],
+      BOOKS: [
+        { ISBN: 'B001', Title: 'DBMS', Author: 'virat', Category: 'Computer', Price: 600, Publication_ID: 201, Staff_ID: 1, Edition: '1st' },
+        { ISBN: 'B002', Title: 'Java', Author: 'rohit', Category: 'Programming', Price: 450, Publication_ID: 202, Staff_ID: 2, Edition: '2nd' },
+        { ISBN: 'B003', Title: 'Python', Author: 'mohan', Category: 'Programming', Price: 550, Publication_ID: 201, Staff_ID: 1, Edition: '1st' }
+      ],
+      RESERVE_RETURN: [
+        { Reserve_ID: 1, User_ID: 101, ISBN: 'B001', Reserve_Date: '2026-07-20', Due_Date: '2026-07-30', Return_Date: null },
+        { Reserve_ID: 2, User_ID: 102, ISBN: 'B002', Reserve_Date: '2026-07-15', Due_Date: '2026-07-25', Return_Date: '2026-07-24' },
+        { Reserve_ID: 3, User_ID: 103, ISBN: 'B003', Reserve_Date: '2026-07-22', Due_Date: '2026-08-01', Return_Date: null }
+      ]
+    };
+
+    function sendMessage() {
+      const inputEl = document.getElementById('userInput');
+      const query = inputEl.value.trim();
+      if (!query) return;
+
+      appendMessage(query, 'user-message');
+      inputEl.value = '';
+
+      setTimeout(() => {
+        const response = processQuery(query.toLowerCase());
+        appendMessage(response, 'bot-message');
+      }, 300);
+    }
+
+    function quickQuery(text) {
+      document.getElementById('userInput').value = text;
+      sendMessage();
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') sendMessage();
+    }
+
+    function appendMessage(content, className) {
+      const messagesArea = document.getElementById('messagesArea');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${className}`;
+      msgDiv.innerHTML = content;
+      messagesArea.appendChild(msgDiv);
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    function processQuery(q) {
+      if (q.includes('list') && q.includes('book') || q.includes('all books')) {
+        let rows = DB.BOOKS.map(b => `<tr><td>${b.ISBN}</td><td>${b.Title}</td><td>${b.Author}</td><td>₹${b.Price}</td></tr>`).join('');
+        return `Here are the books available in the database:<br><table class="db-table"><tr><th>ISBN</th><th>Title</th><th>Author</th><th>Price</th></tr>${rows}</table>`;
+      }
+
+      if (q.includes('average price') || q.includes('avg price')) {
+        const avg = DB.BOOKS.reduce((sum, b) => sum + b.Price, 0) / DB.BOOKS.length;
+        return `The average book price across <strong>${DB.BOOKS.length}</strong> titles is <strong>₹${avg.toFixed(2)}</strong>.`;
+      }
+
+      if (q.includes('reader') || q.includes('user')) {
+        let rows = DB.READERS.map(r => `<tr><td>${r.User_ID}</td><td>${r.First_Name} ${r.Last_Name}</td><td>${r.Email}</td><td>${r.Address}</td></tr>`).join('');
+        return `Here are the registered readers:<br><table class="db-table"><tr><th>ID</th><th>Name</th><th>Email</th><th>City</th></tr>${rows}</table>`;
+      }
+
+      if (q.includes('b001')) {
+        const res = DB.RESERVE_RETURN.find(r => r.ISBN === 'B001');
+        const reader = DB.READERS.find(r => r.User_ID === res.User_ID);
+        return `Book <strong>B001 (DBMS)</strong> is currently reserved by <strong>${reader.First_Name} ${reader.Last_Name}</strong> (ID: ${reader.User_ID}) from ${res.Reserve_Date} to ${res.Due_Date}.`;
+      }
+
+      if (q.includes('staff')) {
+        let rows = DB.STAFF.map(s => `<tr><td>${s.Staff_ID}</td><td>${s.Name}</td></tr>`).join('');
+        return `Staff directory:<br><table class="db-table"><tr><th>ID</th><th>Name</th></tr>${rows}</table>`;
+      }
+
+      return `I recognized your query regarding <code>LIBRARY_DB</code>. You can ask for <em>"all books"</em>, <em>"registered readers"</em>, <em>"average price"</em>, or status of <em>"B001"</em>.`;
+    }
+  </script>
+</body>
+</html>
