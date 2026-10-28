@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Library Management System - Interactive SQL Database &amp; AI Query Terminal</title>
-  <meta name="description" content="Interactive relational database explorer and natural language SQL query assistant for LIBRARY_DB. View readers, books, staff, issues, reservations and run queries live.">
+  <title>Library Management System - Interactive SQL Database &amp; Lab Suite</title>
+  <meta name="description" content="Interactive relational database explorer, SQL Experiments 1 to 9 suite, and natural language SQL query assistant for LIBRARY_DB.">
   
   <!-- Google Fonts & Font Awesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,52 +41,94 @@
 
   <!-- Main Multi-Panel Workspace -->
   <main class="main-layout">
-    <!-- Left Panel: Interactive Database Schema & Tables Viewer -->
+    <!-- Left Panel: Interactive Database Schema, Tables & SQL Code Viewer -->
     <section class="left-panel">
-      <!-- Database Table Navigator Tabs -->
+      
+      <!-- Primary Card: Explorer & Experiments -->
       <div class="card schema-card">
         <div class="panel-header">
           <div class="panel-title">
             <i class="fa-solid fa-database"></i>
-            <h2>LIBRARY_DB Tables</h2>
+            <h2>LIBRARY_DB Explorer &amp; Lab Code</h2>
           </div>
-          <span class="badge">6 Relations</span>
+          <span class="badge" id="mode-badge">Database Tables</span>
         </div>
 
-        <div class="table-tabs" role="tablist">
-          <button class="tab-btn active" data-table="BOOKS" role="tab">
-            <i class="fa-solid fa-book"></i> BOOKS
+        <!-- View Switcher: Interactive Tables vs Complete SQL Code -->
+        <div class="view-switcher-bar">
+          <button class="view-btn active" id="btn-view-tables">
+            <i class="fa-solid fa-table"></i> Live Database Tables
           </button>
-          <button class="tab-btn" data-table="READERS" role="tab">
-            <i class="fa-solid fa-user-group"></i> READERS
-          </button>
-          <button class="tab-btn" data-table="RESERVE_RETURN" role="tab">
-            <i class="fa-solid fa-calendar-check"></i> RESERVE_RETURN
-          </button>
-          <button class="tab-btn" data-table="STAFF" data-title="Staff Members" role="tab">
-            <i class="fa-solid fa-id-card"></i> STAFF
-          </button>
-          <button class="tab-btn" data-table="PUBLISHING" role="tab">
-            <i class="fa-solid fa-print"></i> PUBLISHING
-          </button>
-          <button class="tab-btn" data-table="REPORTS" role="tab">
-            <i class="fa-solid fa-file-invoice"></i> REPORTS
+          <button class="view-btn" id="btn-view-code">
+            <i class="fa-solid fa-code"></i> Complete SQL Lab Code (Exp 1-9)
           </button>
         </div>
 
-        <!-- Active Table Grid View -->
-        <div class="table-container">
-          <div class="table-meta-bar">
-            <span id="active-table-title">Table: <strong>BOOKS</strong></span>
-            <span class="row-count-badge" id="active-table-count">3 Rows</span>
+        <!-- VIEW 1: Interactive Tables -->
+        <div class="table-view-container" id="tableViewContainer">
+          <!-- Database Table Navigator Tabs -->
+          <div class="table-tabs" role="tablist">
+            <button class="tab-btn active" data-table="BOOKS" role="tab">
+              <i class="fa-solid fa-book"></i> BOOKS
+            </button>
+            <button class="tab-btn" data-table="READERS" role="tab">
+              <i class="fa-solid fa-user-group"></i> READERS
+            </button>
+            <button class="tab-btn" data-table="RESERVE_RETURN" role="tab">
+              <i class="fa-solid fa-calendar-check"></i> RESERVE_RETURN
+            </button>
+            <button class="tab-btn" data-table="STAFF" role="tab">
+              <i class="fa-solid fa-id-card"></i> STAFF
+            </button>
+            <button class="tab-btn" data-table="PUBLISHING" role="tab">
+              <i class="fa-solid fa-print"></i> PUBLISHING
+            </button>
+            <button class="tab-btn" data-table="REPORTS" role="tab">
+              <i class="fa-solid fa-file-invoice"></i> REPORTS
+            </button>
           </div>
-          <div class="responsive-table-wrap">
-            <table id="sql-data-table" class="data-table">
-              <thead id="sql-table-head"></thead>
-              <tbody id="sql-table-body"></tbody>
-            </table>
+
+          <!-- Active Table Grid View -->
+          <div class="table-container">
+            <div class="table-meta-bar">
+              <span id="active-table-title">Table: <strong>BOOKS</strong></span>
+              <span class="row-count-badge" id="active-table-count">3 Rows</span>
+            </div>
+            <div class="responsive-table-wrap">
+              <table id="sql-data-table" class="data-table">
+                <thead id="sql-table-head"></thead>
+                <tbody id="sql-table-body"></tbody>
+              </table>
+            </div>
           </div>
         </div>
+
+        <!-- VIEW 2: Complete SQL Experiments Code Viewer -->
+        <div class="sql-code-viewer" id="sqlCodeViewer">
+          <div class="exp-nav-pills" id="expNavPills">
+            <button class="exp-pill active" data-exp="ALL">All Experiments</button>
+            <button class="exp-pill" data-exp="EXP1">Exp 1: Schema &amp; ER</button>
+            <button class="exp-pill" data-exp="EXP3">Exp 3: DDL &amp; Constraints</button>
+            <button class="exp-pill" data-exp="EXP4">Exp 4: DML &amp; DCL</button>
+            <button class="exp-pill" data-exp="EXP5">Exp 5: Set &amp; Strings</button>
+            <button class="exp-pill" data-exp="EXP6">Exp 6: Aggregates</button>
+            <button class="exp-pill" data-exp="EXP7">Exp 7: Joins &amp; Nested</button>
+            <button class="exp-pill" data-exp="EXP8">Exp 8: Clean Trigger</button>
+            <button class="exp-pill" data-exp="EXP9">Exp 9: Procedures</button>
+          </div>
+
+          <div class="code-header-action">
+            <span class="code-title" id="codeSectionTitle">LIBRARY_DB Complete SQL Script</span>
+            <button class="copy-btn" id="btnCopyCode" title="Copy SQL Code">
+              <i class="fa-regular fa-copy"></i> <span id="copyBtnText">Copy SQL</span>
+            </button>
+          </div>
+
+          <div class="sql-code-container">
+            <pre><code id="sqlCodeDisplay" class="sql-code-block">-- Loading SQL Script...</code></pre>
+          </div>
+        </div>
+
       </div>
 
       <!-- Live Aggregate Analytics Summary -->
@@ -96,7 +138,7 @@
             <i class="fa-solid fa-chart-pie"></i>
             <h3>SQL Aggregate Metrics</h3>
           </div>
-          <span class="badge-code">SELECT AGG(Price)</span>
+          <span class="badge-code">SELECT AGG(Price) FROM BOOKS</span>
         </div>
         <div class="metrics-grid">
           <div class="metric-box">
@@ -143,7 +185,7 @@
             <div class="msg-avatar"><i class="fa-solid fa-robot"></i></div>
             <div class="msg-body">
               <p>Hello! I am your <strong>LIBRARY_DB</strong> Assistant. I can execute queries across readers, book loans, reservations, staff directories, and compute SQL aggregates in real-time.</p>
-              <p class="msg-hint">Try clicking any quick query below or type your own question!</p>
+              <p class="msg-hint">Click any quick query below or type your question or SQL command!</p>
             </div>
           </div>
         </div>
@@ -186,8 +228,11 @@
     <div class="footer-inner">
       <p>Library Management System SQL • Complete T-SQL Schema &amp; Queries • Developed by <a href="https://github.com/MrHarshalBane" target="_blank">Harshal Bane</a></p>
       <div class="footer-links">
+        <a href="library_management.sql" download class="footer-btn">
+          <i class="fa-solid fa-download"></i> Download library_management.sql
+        </a>
         <a href="https://github.com/MrHarshalBane/library-management-system-sql/blob/main/library_management.sql" target="_blank" class="footer-btn">
-          <i class="fa-solid fa-file-lines"></i> View library_management.sql
+          <i class="fa-brands fa-github"></i> View GitHub Repo
         </a>
       </div>
     </div>
