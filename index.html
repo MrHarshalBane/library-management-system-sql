@@ -54,13 +54,19 @@
           <span class="badge" id="mode-badge">Database Tables</span>
         </div>
 
-        <!-- View Switcher: Interactive Tables vs Complete SQL Code -->
+        <!-- View Switcher: Interactive Tables vs Employee Portal vs File Comparison vs Complete SQL Code -->
         <div class="view-switcher-bar">
           <button class="view-btn active" id="btn-view-tables">
             <i class="fa-solid fa-table"></i> Live Database Tables
           </button>
+          <button class="view-btn" id="btn-view-portal">
+            <i class="fa-solid fa-user-shield"></i> Employee Portal <span class="nav-pill-badge">Manage</span>
+          </button>
+          <button class="view-btn" id="btn-view-diff">
+            <i class="fa-solid fa-code-compare"></i> Compare Files <span class="nav-pill-badge">Diff Tool</span>
+          </button>
           <button class="view-btn" id="btn-view-code">
-            <i class="fa-solid fa-code"></i> Complete SQL Lab Code (Exp 1-9)
+            <i class="fa-solid fa-code"></i> SQL Lab Code (Exp 1-9)
           </button>
         </div>
 
@@ -104,7 +110,7 @@
         </div>
 
         <!-- VIEW 2: Complete SQL Experiments Code Viewer -->
-        <div class="sql-code-viewer" id="sqlCodeViewer">
+        <div class="sql-code-viewer hidden" id="sqlCodeViewer">
           <div class="exp-nav-pills" id="expNavPills">
             <button class="exp-pill active" data-exp="ALL">All Experiments</button>
             <button class="exp-pill" data-exp="EXP1">Exp 1: Schema &amp; ER</button>
@@ -126,6 +132,471 @@
 
           <div class="sql-code-container">
             <pre><code id="sqlCodeDisplay" class="sql-code-block">-- Loading SQL Script...</code></pre>
+          </div>
+        </div>
+
+        <!-- VIEW 3: Employee Management Portal -->
+        <div class="portal-view-container hidden" id="portalViewContainer">
+          <!-- Employee Profile & Session Bar -->
+          <div class="portal-session-bar">
+            <div class="portal-staff-info">
+              <div class="staff-avatar-circle" id="portal-staff-avatar">
+                <i class="fa-solid fa-user-tie"></i>
+              </div>
+              <div class="staff-details">
+                <div class="staff-name-wrap">
+                  <label for="portal-staff-select" class="staff-label">Staff Member:</label>
+                  <select id="portal-staff-select" class="portal-select-compact">
+                    <option value="1">Amit Sharma (Staff ID: 1 - Circulation Desk)</option>
+                    <option value="2">Neha Verma (Staff ID: 2 - Catalog Specialist)</option>
+                    <option value="99">Admin Supervisor (Staff ID: 99 - Head Librarian)</option>
+                  </select>
+                </div>
+                <span class="staff-status-badge"><span class="pulse-dot-sm"></span> Active Employee Session • LIBRARY_DB Authorized</span>
+              </div>
+            </div>
+
+            <div class="portal-top-actions">
+              <button class="portal-action-btn primary" id="btn-portal-modal-add-book">
+                <i class="fa-solid fa-plus"></i> Add Book
+              </button>
+              <button class="portal-action-btn" id="btn-portal-modal-issue">
+                <i class="fa-solid fa-hand-holding-hand"></i> Issue Book
+              </button>
+              <button class="portal-action-btn" id="btn-portal-export-json" title="Export Current Database state as JSON">
+                <i class="fa-solid fa-file-export"></i> Export DB
+              </button>
+            </div>
+          </div>
+
+          <!-- Portal Sub-Tabs -->
+          <div class="portal-nav-tabs">
+            <button class="portal-tab-btn active" data-portal-tab="books">
+              <i class="fa-solid fa-book"></i> Books Catalog (<span id="portal-books-badge">3</span>)
+            </button>
+            <button class="portal-tab-btn" data-portal-tab="readers">
+              <i class="fa-solid fa-users"></i> Readers / Members (<span id="portal-readers-badge">3</span>)
+            </button>
+            <button class="portal-tab-btn" data-portal-tab="circulation">
+              <i class="fa-solid fa-arrows-rotate"></i> Issue &amp; Return Desk (<span id="portal-circ-badge">3</span>)
+            </button>
+            <button class="portal-tab-btn" data-portal-tab="reports">
+              <i class="fa-solid fa-clipboard-list"></i> Activity Ledger (<span id="portal-reports-badge">3</span>)
+            </button>
+          </div>
+
+          <!-- SUB-VIEW 1: Books Management -->
+          <div class="portal-subview" id="portal-subview-books">
+            <div class="portal-toolbar">
+              <div class="portal-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="portal-search-books" placeholder="Search books by title, author, or ISBN..." />
+              </div>
+              <div class="portal-filter-group">
+                <select id="portal-filter-category" class="portal-select">
+                  <option value="">All Categories</option>
+                  <option value="Computer">Computer</option>
+                  <option value="Programming">Programming</option>
+                  <option value="Database">Database</option>
+                  <option value="Algorithms">Algorithms</option>
+                </select>
+                <button class="portal-btn-sm" id="btn-toggle-add-book-form">
+                  <i class="fa-solid fa-circle-plus"></i> New Book Form
+                </button>
+              </div>
+            </div>
+
+            <!-- Inline Collapsible Add Book Form -->
+            <div class="portal-form-panel hidden" id="portal-add-book-panel">
+              <div class="portal-form-header">
+                <h4><i class="fa-solid fa-book-medical"></i> Register New Book into LIBRARY_DB</h4>
+                <button class="close-form-btn" id="btn-close-book-form"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+              <form id="form-add-book" class="portal-form-grid">
+                <div class="form-group">
+                  <label for="book-isbn">ISBN *</label>
+                  <input type="text" id="book-isbn" required placeholder="e.g. B004" />
+                </div>
+                <div class="form-group">
+                  <label for="book-title">Title *</label>
+                  <input type="text" id="book-title" required placeholder="e.g. Clean Code" />
+                </div>
+                <div class="form-group">
+                  <label for="book-author">Author *</label>
+                  <input type="text" id="book-author" required placeholder="e.g. Robert Martin" />
+                </div>
+                <div class="form-group">
+                  <label for="book-category">Category *</label>
+                  <input type="text" id="book-category" required placeholder="e.g. Programming" />
+                </div>
+                <div class="form-group">
+                  <label for="book-price">Price (₹) *</label>
+                  <input type="number" id="book-price" min="1" step="0.01" required placeholder="e.g. 599.00" />
+                </div>
+                <div class="form-group">
+                  <label for="book-edition">Edition</label>
+                  <input type="text" id="book-edition" placeholder="e.g. 1st Edition" value="1st" />
+                </div>
+                <div class="form-group">
+                  <label for="book-pub-id">Publisher ID</label>
+                  <select id="book-pub-id" class="portal-select">
+                    <option value="201">201 - ABC Publication</option>
+                    <option value="202">202 - XYZ Publication</option>
+                  </select>
+                </div>
+                <div class="form-actions-full">
+                  <button type="submit" class="portal-action-btn primary"><i class="fa-solid fa-check"></i> Save Book to Database</button>
+                  <button type="button" class="portal-action-btn secondary" id="btn-cancel-book-form">Cancel</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Books Table -->
+            <div class="responsive-table-wrap">
+              <table class="data-table" id="portal-books-table">
+                <thead>
+                  <tr>
+                    <th>ISBN</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Edition</th>
+                    <th>Staff ID</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="portal-books-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUB-VIEW 2: Readers Management -->
+          <div class="portal-subview hidden" id="portal-subview-readers">
+            <div class="portal-toolbar">
+              <div class="portal-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="portal-search-readers" placeholder="Search readers by name, email, or city..." />
+              </div>
+              <button class="portal-btn-sm" id="btn-toggle-add-reader-form">
+                <i class="fa-solid fa-user-plus"></i> Register Member
+              </button>
+            </div>
+
+            <!-- Inline Add Reader Form -->
+            <div class="portal-form-panel hidden" id="portal-add-reader-panel">
+              <div class="portal-form-header">
+                <h4><i class="fa-solid fa-address-card"></i> Register New Library Reader / Member</h4>
+                <button class="close-form-btn" id="btn-close-reader-form"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+              <form id="form-add-reader" class="portal-form-grid">
+                <div class="form-group">
+                  <label for="reader-user-id">User ID *</label>
+                  <input type="number" id="reader-user-id" required placeholder="e.g. 104" />
+                </div>
+                <div class="form-group">
+                  <label for="reader-first-name">First Name *</label>
+                  <input type="text" id="reader-first-name" required placeholder="e.g. Ananya" />
+                </div>
+                <div class="form-group">
+                  <label for="reader-last-name">Last Name *</label>
+                  <input type="text" id="reader-last-name" required placeholder="e.g. Kulkarni" />
+                </div>
+                <div class="form-group">
+                  <label for="reader-email">Email *</label>
+                  <input type="email" id="reader-email" required placeholder="e.g. ananya@gmail.com" />
+                </div>
+                <div class="form-group">
+                  <label for="reader-phone">Phone Number *</label>
+                  <input type="text" id="reader-phone" required placeholder="e.g. 9876543213" />
+                </div>
+                <div class="form-group">
+                  <label for="reader-address">City / Address *</label>
+                  <input type="text" id="reader-address" required placeholder="e.g. Mumbai" />
+                </div>
+                <div class="form-group">
+                  <label for="reader-dob">Date of Birth</label>
+                  <input type="date" id="reader-dob" value="2004-05-12" />
+                </div>
+                <div class="form-actions-full">
+                  <button type="submit" class="portal-action-btn primary"><i class="fa-solid fa-check"></i> Register Reader</button>
+                  <button type="button" class="portal-action-btn secondary" id="btn-cancel-reader-form">Cancel</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Readers Table -->
+            <div class="responsive-table-wrap">
+              <table class="data-table" id="portal-readers-table">
+                <thead>
+                  <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                    <th>DOB</th>
+                    <th>Active Loans</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="portal-readers-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUB-VIEW 3: Issue & Return (Circulation) -->
+          <div class="portal-subview hidden" id="portal-subview-circulation">
+            <div class="portal-circ-grid">
+              <!-- Issue Form Card -->
+              <div class="portal-mini-card">
+                <div class="mini-card-header">
+                  <h4><i class="fa-solid fa-book-open-reader"></i> Issue Book to Reader</h4>
+                  <span class="badge-code">dbo.ReserveBook</span>
+                </div>
+                <form id="form-issue-book" class="portal-circ-form">
+                  <div class="form-group">
+                    <label for="issue-reader-select">Select Reader *</label>
+                    <select id="issue-reader-select" class="portal-select" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label for="issue-book-select">Select Book *</label>
+                    <select id="issue-book-select" class="portal-select" required></select>
+                  </div>
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label for="issue-reserve-date">Issue Date</label>
+                      <input type="date" id="issue-reserve-date" required />
+                    </div>
+                    <div class="form-group">
+                      <label for="issue-due-date">Due Date</label>
+                      <input type="date" id="issue-due-date" required />
+                    </div>
+                  </div>
+                  <button type="submit" class="portal-action-btn primary" style="width: 100%; justify-content: center;">
+                    <i class="fa-solid fa-stamp"></i> Issue Book (Execute Transaction)
+                  </button>
+                </form>
+              </div>
+
+              <!-- Circulation Desk Quick Stats -->
+              <div class="portal-mini-card">
+                <div class="mini-card-header">
+                  <h4><i class="fa-solid fa-chart-column"></i> Circulation Status</h4>
+                  <span class="badge">Live Counters</span>
+                </div>
+                <div class="circ-stats-grid">
+                  <div class="circ-stat-box">
+                    <span class="circ-stat-title">Active Loans</span>
+                    <strong class="circ-stat-num warning" id="circ-active-count">2</strong>
+                    <span class="circ-stat-desc">Books with readers</span>
+                  </div>
+                  <div class="circ-stat-box">
+                    <span class="circ-stat-title">Completed Returns</span>
+                    <strong class="circ-stat-num success" id="circ-returned-count">1</strong>
+                    <span class="circ-stat-desc">Successfully archived</span>
+                  </div>
+                </div>
+                <div class="circ-filter-bar">
+                  <label>Filter Records:</label>
+                  <div class="circ-pill-filters" id="circFilterPills">
+                    <button class="circ-filter-btn active" data-filter="all">All (<span id="circ-all-badge">3</span>)</button>
+                    <button class="circ-filter-btn" data-filter="pending">Active Loans (<span id="circ-pending-badge">2</span>)</button>
+                    <button class="circ-filter-btn" data-filter="returned">Returned (<span id="circ-done-badge">1</span>)</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Circulation Records Table -->
+            <div class="responsive-table-wrap" style="margin-top: 16px;">
+              <table class="data-table" id="portal-circ-table">
+                <thead>
+                  <tr>
+                    <th>Reserve ID</th>
+                    <th>Reader</th>
+                    <th>Book Details</th>
+                    <th>Issue Date</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Desk Action</th>
+                  </tr>
+                </thead>
+                <tbody id="portal-circ-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUB-VIEW 4: Audit & Activity Reports -->
+          <div class="portal-subview hidden" id="portal-subview-reports">
+            <div class="portal-toolbar">
+              <div class="panel-title">
+                <i class="fa-solid fa-file-invoice"></i>
+                <h4 style="font-size: 0.95rem; margin: 0;">REPORTS Transaction Audit Ledger</h4>
+              </div>
+              <button class="portal-btn-sm" id="btn-export-reports-csv">
+                <i class="fa-solid fa-file-csv"></i> Download CSV Ledger
+              </button>
+            </div>
+            <div class="responsive-table-wrap">
+              <table class="data-table" id="portal-reports-table">
+                <thead>
+                  <tr>
+                    <th>Reg No</th>
+                    <th>Book ISBN</th>
+                    <th>Action</th>
+                    <th>User ID</th>
+                    <th>Staff in Charge</th>
+                    <th>Logged Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody id="portal-reports-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- VIEW 4: File Comparison Tool (Diff Engine) -->
+        <div class="file-diff-container hidden" id="fileDiffContainer">
+          <!-- Diff Tool Header & Presets -->
+          <div class="diff-header-bar">
+            <div class="diff-title-wrap">
+              <div class="diff-icon-badge"><i class="fa-solid fa-code-compare"></i></div>
+              <div>
+                <h3 class="diff-main-heading">SQL &amp; File Comparison Engine</h3>
+                <p class="diff-subheading">Side-by-side &amp; unified diff viewer for database schemas, catalog files, and audit records</p>
+              </div>
+            </div>
+
+            <div class="diff-preset-menu">
+              <label><i class="fa-solid fa-bolt"></i> Quick Presets:</label>
+              <select id="diff-preset-select" class="portal-select-compact">
+                <option value="schema">Preset: Schema v1.0 vs v2.0 (Stored Procedures &amp; Triggers)</option>
+                <option value="catalog">Preset: Book Inventory (October vs November Catalog)</option>
+                <option value="readers">Preset: Reader Member Directory (Old vs Updated Contacts)</option>
+                <option value="custom">-- Custom Upload / Paste --</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Diff Controls Toolbar -->
+          <div class="diff-toolbar">
+            <div class="diff-btn-group">
+              <button class="diff-tool-btn primary" id="btn-run-diff">
+                <i class="fa-solid fa-play"></i> Compare Files
+              </button>
+              <button class="diff-tool-btn" id="btn-swap-diff" title="Swap Left and Right files">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i> Swap
+              </button>
+              <button class="diff-tool-btn" id="btn-clear-diff" title="Clear both inputs">
+                <i class="fa-solid fa-trash-can"></i> Clear
+              </button>
+            </div>
+
+            <div class="diff-view-mode-toggle">
+              <button class="mode-toggle-btn active" id="btn-mode-split">
+                <i class="fa-solid fa-table-columns"></i> Side-by-Side
+              </button>
+              <button class="mode-toggle-btn" id="btn-mode-unified">
+                <i class="fa-solid fa-bars-staggered"></i> Unified Patch
+              </button>
+            </div>
+
+            <div class="diff-export-group">
+              <button class="diff-tool-btn" id="btn-download-patch" title="Download unified .patch file">
+                <i class="fa-solid fa-download"></i> Export .patch
+              </button>
+            </div>
+          </div>
+
+          <!-- Dual Input Panels (File A vs File B) -->
+          <div class="diff-inputs-wrapper" id="diffInputsWrapper">
+            <!-- Left Input: Original File -->
+            <div class="diff-input-pane">
+              <div class="pane-header">
+                <div class="pane-title">
+                  <span class="file-tag original">File A (Original)</span>
+                  <input type="text" id="diff-file-a-name" class="diff-filename-input" value="LIBRARY_DB_v1.0.sql" />
+                </div>
+                <div class="pane-actions">
+                  <label class="diff-upload-label" title="Upload text, SQL or CSV file">
+                    <i class="fa-solid fa-upload"></i> Upload
+                    <input type="file" id="upload-file-a" class="hidden-file-input" accept=".sql,.txt,.csv,.json,.md,.js" />
+                  </label>
+                  <span class="line-count-tag" id="lines-count-a">0 lines</span>
+                </div>
+              </div>
+              <textarea id="diff-text-a" class="diff-textarea" placeholder="Paste original file content or SQL script here..." spellcheck="false"></textarea>
+            </div>
+
+            <!-- Right Input: Modified File -->
+            <div class="diff-input-pane">
+              <div class="pane-header">
+                <div class="pane-title">
+                  <span class="file-tag modified">File B (Modified)</span>
+                  <input type="text" id="diff-file-b-name" class="diff-filename-input" value="LIBRARY_DB_v2.0.sql" />
+                </div>
+                <div class="pane-actions">
+                  <label class="diff-upload-label" title="Upload text, SQL or CSV file">
+                    <i class="fa-solid fa-upload"></i> Upload
+                    <input type="file" id="upload-file-b" class="hidden-file-input" accept=".sql,.txt,.csv,.json,.md,.js" />
+                  </label>
+                  <span class="line-count-tag" id="lines-count-b">0 lines</span>
+                </div>
+              </div>
+              <textarea id="diff-text-b" class="diff-textarea" placeholder="Paste modified file content or SQL script here..." spellcheck="false"></textarea>
+            </div>
+          </div>
+
+          <!-- Comparison Metrics & Stats Bar -->
+          <div class="diff-stats-strip" id="diffStatsStrip">
+            <div class="diff-stat-item">
+              <span class="stat-bullet total"></span>
+              <span>Total Lines: <strong id="stat-diff-total">0</strong></span>
+            </div>
+            <div class="diff-stat-item">
+              <span class="stat-bullet add"></span>
+              <span>Additions: <strong class="text-green" id="stat-diff-add">+0</strong></span>
+            </div>
+            <div class="diff-stat-item">
+              <span class="stat-bullet del"></span>
+              <span>Deletions: <strong class="text-red" id="stat-diff-del">-0</strong></span>
+            </div>
+            <div class="diff-stat-item">
+              <span class="stat-bullet mod"></span>
+              <span>Modifications: <strong class="text-amber" id="stat-diff-mod">~0</strong></span>
+            </div>
+            <div class="diff-stat-item">
+              <span>Similarity Match: <strong class="text-blue" id="stat-diff-similarity">100%</strong></span>
+            </div>
+          </div>
+
+          <!-- Rendered Diff Output Container -->
+          <div class="diff-results-wrap">
+            <!-- Split Diff View -->
+            <div class="diff-split-container" id="diffSplitContainer">
+              <div class="diff-table-container">
+                <table class="diff-render-table" id="diffRenderTable">
+                  <thead>
+                    <tr>
+                      <th class="diff-num-col">A #</th>
+                      <th class="diff-code-col">File A Original Content</th>
+                      <th class="diff-num-col">B #</th>
+                      <th class="diff-code-col">File B Modified Content</th>
+                    </tr>
+                  </thead>
+                  <tbody id="diffTableBody">
+                    <tr><td colspan="4" class="diff-placeholder">Click <strong>"Compare Files"</strong> above or select a preset to analyze differences.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Unified Patch View (Hidden by default) -->
+            <div class="diff-unified-container hidden" id="diffUnifiedContainer">
+              <pre class="unified-patch-block"><code id="unifiedPatchCode">-- Unified patch view will appear here...</code></pre>
+            </div>
           </div>
         </div>
 
@@ -210,6 +681,15 @@
           <button class="chip" data-query="SELECT * FROM STAFF">
             <i class="fa-solid fa-terminal"></i> ⚡ SELECT * FROM STAFF
           </button>
+          <button class="chip" data-query="Show active book reservations">
+            <i class="fa-solid fa-clock"></i> 🔄 Active Loans
+          </button>
+          <button class="chip" data-query="How to manage library records in employee portal?">
+            <i class="fa-solid fa-user-shield"></i> 🏢 Staff Portal Info
+          </button>
+          <button class="chip" data-query="Compare SQL schema versions">
+            <i class="fa-solid fa-code-compare"></i> 🔍 File Diff Tool
+          </button>
         </div>
 
         <!-- Chat Input Form -->
@@ -222,6 +702,9 @@
       </div>
     </section>
   </main>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
 
   <!-- Download & Reference Footer Bar -->
   <footer class="app-footer">
